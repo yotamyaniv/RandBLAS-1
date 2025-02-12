@@ -91,7 +91,8 @@ static void apply_coo_left_jki_p11(
     const T *B,
     int64_t ldb,
     T *C,
-    int64_t ldc
+    int64_t ldc,
+    OMP dev
 ) {
     randblas_require(A0.index_base == IndexBase::Zero);
 
@@ -99,7 +100,7 @@ static void apply_coo_left_jki_p11(
     if (A0.sort != NonzeroSort::CSC) {
         auto orig_sort = A0.sort;
         sort_coo_data(NonzeroSort::CSC, A0);
-        apply_coo_left_jki_p11(alpha, layout_B, layout_C, d, n, m, A0, ro_a, co_a, B, ldb, C, ldc);
+        apply_coo_left_jki_p11(alpha, layout_B, layout_C, d, n, m, A0, ro_a, co_a, B, ldb, C, ldc, dev);
         sort_coo_data(orig_sort, A0);
         return;
     }
@@ -136,29 +137,48 @@ static void apply_coo_left_jki_p11(
     auto C_inter_col_stride = s.inter_col_stride;
     auto C_inter_row_stride = s.inter_row_stride;
 
-    #pragma omp parallel default(shared)
-    {
-        const T *B_col = nullptr;
-        T *C_col = nullptr;
-        #pragma omp for schedule(static)
-        for (int64_t j = 0; j < n; j++) {
-            B_col = &B[B_inter_col_stride * j];
-            C_col = &C[C_inter_col_stride * j];
-            if (fixed_nnz_per_col) {
-                RandBLAS::sparse_data::csc::apply_regular_csc_to_vector_from_left_ki<T>(
-                    A_vals.data(), A_rows.data(), A_colptr[1],
-                    m, B_col, B_inter_row_stride,
-                    C_col, C_inter_row_stride
-                );
-            } else {
-                RandBLAS::sparse_data::csc::apply_csc_to_vector_from_left_ki<T>(
-                    A_vals.data(), A_rows.data(), A_colptr.data(),
-                    m, B_col, B_inter_row_stride,
-                    C_col, C_inter_row_stride
-                ); 
-            }
-        }
-    }
+    //----------------------------------------------
+    // Get raw pointers from vectors (define ONCE)
+    const T* A_vals_ptr = A_vals.data();
+    const int64_t* A_rows_ptr = A_rows.data();
+    const int64_t* A_colptr_ptr = A_colptr.data();
+
+    // Get sizes for mapping (define ONCE)
+    int64_t A_vals_size = A_vals.size();
+    int64_t A_rows_size = A_rows.size();
+    int64_t A_colptr_size = A_colptr.size();
+
+    // Calculate sizes for B and C arrays (define ONCE)
+    int64_t B_size = n * B_inter_col_stride;
+    int64_t C_size = n * C_inter_col_stride;
+
+    // OpenMP offload directive
+    #pragma omp target teams distribute parallel for \
+        map(to: A_vals_ptr[0:A_vals_size],         \
+                A_rows_ptr[0:A_rows_size],          \
+                A_colptr_ptr[0:A_colptr_size],      \
+                B[0:B_size])                        \
+        map(from: C[0:C_size])                     \
+        default(shared) schedule(static)
+    //----------------------------------------------
+    for (int64_t j = 0; j < n; j++) {
+           const T* B_col = &B[B_inter_col_stride * j];
+           T* C_col = &C[C_inter_col_stride * j];
+           
+           if (fixed_nnz_per_col) {
+               RandBLAS::sparse_data::csc::apply_regular_csc_to_vector_from_left_ki<T>(
+                   A_vals_ptr, A_rows_ptr, A_colptr_ptr[1],
+                   m, B_col, B_inter_row_stride,
+                   C_col, C_inter_row_stride
+               );
+           } else {
+               RandBLAS::sparse_data::csc::apply_csc_to_vector_from_left_ki<T>(
+                   A_vals_ptr, A_rows_ptr, A_colptr_ptr,
+                   m, B_col, B_inter_row_stride,
+                   C_col, C_inter_row_stride
+               );
+           }
+       }
     return;
 }
 

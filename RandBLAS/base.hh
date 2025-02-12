@@ -303,6 +303,10 @@ inline int64_t get_dim_major(Axis major_axis, int64_t n_rows, int64_t n_cols) {
     }
 }
 
+enum class OMP : int {
+    Host = 0,
+    Device = 1
+};
 
 #ifdef __cpp_concepts
 // =============================================================================

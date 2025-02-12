@@ -5,6 +5,19 @@ set(tmp FALSE)
 if (GTest_FOUND)
     set(tmp TRUE)
 
+
+    #####################################################################
+    #
+    #   OMP Tests
+    #
+    #####################################################################
+
+    add_executable(test_omp
+        test_omp/test_coo_sk_omp.cc
+    )
+    target_link_libraries(test_omp RandBLAS GTest::GTest GTest::Main)
+    gtest_discover_tests(test_omp)
+    
     #####################################################################
     #
     #   Tests with dense data and wrappers
@@ -84,7 +97,6 @@ if (GTest_FOUND)
     add_executable(misc_tests test_io.cc test_exceptions.cc )
     target_link_libraries(misc_tests RandBLAS GTest::GTest GTest::Main)
     gtest_discover_tests(misc_tests)
-
 endif()
 message(STATUS "Checking for regression tests ... ${tmp}")
 
