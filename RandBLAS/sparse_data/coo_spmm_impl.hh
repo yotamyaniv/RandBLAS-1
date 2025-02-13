@@ -140,12 +140,12 @@ static void apply_coo_left_jki_p11(
     auto C_inter_row_stride = s.inter_row_stride;
 
     if (dev == OMP::Device){
-        /*
+        
         // Get raw pointers from vectors
         const T* A_vals_ptr = A_vals.data();
         const int64_t* A_rows_ptr = A_rows.data();
         const int64_t* A_colptr_ptr = A_colptr.data();
-
+        /*
         // Get sizes for mapping
         int64_t A_vals_size = A_vals.size();
         int64_t A_rows_size = A_rows.size();
