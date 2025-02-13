@@ -15,7 +15,7 @@ if (GTest_FOUND)
     add_executable(test_omp
         test_omp/test_coo_sk_omp.cc
     )
-    target_link_libraries(test_omp RandBLAS GTest::GTest GTest::Main)
+    target_link_libraries(test_omp RandBLAS OPENMP::OPENMP_CXX GTest::GTest GTest::Main)
     gtest_discover_tests(test_omp)
     
     #####################################################################
