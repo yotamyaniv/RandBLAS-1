@@ -1,6 +1,6 @@
 message(STATUS "Checking for OpenMP ... ")
 find_package(OpenMP COMPONENTS CXX)
-add_compile_options(-fopenmp --offload-target=gfx942)
+add_compile_options(-fopenmp --offload-arch==gfx942)
 set(tmp FALSE)
 if (OpenMP_CXX_FOUND)
     set(tmp TRUE)
