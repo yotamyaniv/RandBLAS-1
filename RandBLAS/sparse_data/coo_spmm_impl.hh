@@ -140,6 +140,7 @@ static void apply_coo_left_jki_p11(
     auto C_inter_row_stride = s.inter_row_stride;
 
     if (dev == OMP::Device){
+        /*
         // Get raw pointers from vectors
         const T* A_vals_ptr = A_vals.data();
         const int64_t* A_rows_ptr = A_rows.data();
@@ -153,8 +154,7 @@ static void apply_coo_left_jki_p11(
         // Calculate sizes for B and C arrays
         int64_t B_size = n * B_inter_col_stride;
         int64_t C_size = n * C_inter_col_stride;
-        const T *B_col = nullptr;
-        T *C_col = nullptr;
+        */
         // OpenMP offload directive
         /*
         #pragma omp target teams distribute parallel for \
@@ -165,6 +165,8 @@ static void apply_coo_left_jki_p11(
             map(from: C[0:C_size])                     \
             default(shared) schedule(static)
         */
+       const T *B_col = nullptr;
+       T *C_col = nullptr;
         #pragma omp target teams loop
         for (int64_t j = 0; j < n; j++) {
                 B_col = &B[B_inter_col_stride * j];
