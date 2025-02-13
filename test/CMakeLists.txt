@@ -1,6 +1,7 @@
 message(STATUS "Checking for regression tests ...")
 project(randblas_test)
 find_package(GTest)
+find_package(OpenMP)
 set(tmp FALSE)
 if (GTest_FOUND)
     set(tmp TRUE)
