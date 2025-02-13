@@ -74,13 +74,18 @@ class TestCOOSKOMP : public ::testing::Test {
 };
 
 TEST_F(TestCOOSKOMP, test_coo_sk_times_dense_A) {
+    //no offload
     test_coo_sk_times_dense_A<float,int64_t>(50,100,200,0,1, OMP::Host);
     test_coo_sk_times_dense_A<float,int64_t>(50,100,200,1,1, OMP::Host);
     test_coo_sk_times_dense_A<float,int64_t>(50,100,200,2,1, OMP::Host);
     test_coo_sk_times_dense_A<float,int64_t>(50,100,200,2,1, OMP::Host);
-    //(int64_t d, int64_t m, int64_t n, int64_t key_index, int64_t nnz_index)
-    //no offload
     //yes offload
+    test_coo_sk_times_dense_A<float,int64_t>(50,100,200,0,1, OMP::Device);
+    test_coo_sk_times_dense_A<float,int64_t>(50,100,200,1,1, OMP::Device);
+    test_coo_sk_times_dense_A<float,int64_t>(50,100,200,2,1, OMP::Device);
+    test_coo_sk_times_dense_A<float,int64_t>(50,100,200,2,1, OMP::Device);
+    
+    
 }
 
 
